@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.badge {
+  display: none;
+}
+
+[style*="2147483647"] {
+  display: none;
+}
