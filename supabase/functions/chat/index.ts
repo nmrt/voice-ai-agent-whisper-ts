@@ -21,11 +21,11 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const formData = await req.formData();
     // const { messages, key } = (await req.json()) as {
     //   messages: Message[];
     //   key: string;
     // };
+    // const formData = await req.formData();
     const messages = formData.get('messages');
     const key = formData.get('key');
     console.log({ messages, key });
