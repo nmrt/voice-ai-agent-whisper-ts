@@ -102,7 +102,8 @@ export default function VoiceAgent({ onOpenSettings }: VoiceAgentProps) {
   const processAudio = async (audioBlob: Blob) => {
     setIsProcessing(true);
     try {
-      const transcribedText = await transcribeAudio(audioBlob);
+      // const transcribedText = await transcribeAudio(audioBlob);
+      const transcribedText = '1, 2, 3';
       setTranscript(transcribedText);
 
       const newHistory = [
