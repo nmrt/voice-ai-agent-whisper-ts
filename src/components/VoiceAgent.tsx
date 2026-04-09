@@ -158,7 +158,7 @@ export default function VoiceAgent({ onOpenSettings }: VoiceAgentProps) {
   ): Promise<string> => {
     const formData = new FormData();
     formData.append('key', apiKey);
-    formData.append('messages', JSON.stringify(history));
+    // formData.append('messages', JSON.stringify(history));
     console.log(formData);
 
     const response = await fetch(
