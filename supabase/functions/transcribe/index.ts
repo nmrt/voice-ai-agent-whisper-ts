@@ -31,7 +31,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY") || formData.get('key');
+    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
     if (!openaiApiKey) {
       return new Response(
         JSON.stringify({ error: "OpenAI API key not configured" }),
@@ -57,12 +57,11 @@ Deno.serve(async (req: Request) => {
       body: whisperFormData,
     });
 
-    console.log({response})
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Whisper API error:", errorText);
       return new Response(
-        JSON.stringify({ error: "Transcription failed", message: errorText }),
+        JSON.stringify({ error: "Transcription failed" }),
         {
           status: response.status,
           headers: {
