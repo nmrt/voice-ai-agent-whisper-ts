@@ -1,5 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, Volume2, Loader2, Settings as SettingsIcon } from 'lucide-react';
+import {
+  Mic,
+  MicOff,
+  Volume2,
+  Loader2,
+  Settings as SettingsIcon,
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface VoiceAgentProps {
@@ -13,7 +19,9 @@ export default function VoiceAgent({ onOpenSettings }: VoiceAgentProps) {
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
   const [error, setError] = useState('');
-  const [conversationHistory, setConversationHistory] = useState<Array<{ role: string; content: string }>>([]);
+  const [conversationHistory, setConversationHistory] = useState<
+    Array<{ role: string; content: string }>
+  >([]);
   const [apiKey, setApiKey] = useState('');
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -26,7 +34,9 @@ export default function VoiceAgent({ onOpenSettings }: VoiceAgentProps) {
 
   const loadApiKey = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error: err } = await supabase
@@ -67,9 +77,11 @@ export default function VoiceAgent({ onOpenSettings }: VoiceAgentProps) {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: 'audio/webm',
+        });
         await processAudio(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorder.start();
@@ -90,15 +102,22 @@ export default function VoiceAgent({ onOpenSettings }: VoiceAgentProps) {
   const processAudio = async (audioBlob: Blob) => {
     setIsProcessing(true);
     try {
-      const transcribedText = await transcribeAudio(audioBlob);
+      // const transcribedText = await transcribeAudio(audioBlob);
+      const transcribedText = '1, 2, 3';
       setTranscript(transcribedText);
 
-      const newHistory = [...conversationHistory, { role: 'user', content: transcribedText }];
+      const newHistory = [
+        ...conversationHistory,
+        { role: 'user', content: transcribedText },
+      ];
 
       const aiResponse = await getAIResponse(newHistory);
       setResponse(aiResponse);
 
-      setConversationHistory([...newHistory, { role: 'assistant', content: aiResponse }]);
+      setConversationHistory([
+        ...newHistory,
+        { role: 'assistant', content: aiResponse },
+      ]);
 
       await speakResponse(aiResponse);
     } catch (err) {
@@ -112,36 +131,46 @@ export default function VoiceAgent({ onOpenSettings }: VoiceAgentProps) {
   const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
     const formData = new FormData();
     formData.append('audio', audioBlob, 'recording.webm');
+    formData.append('key', apiKey);
+    console.log(formData);
 
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: formData,
       }
     );
 
     if (!response.ok) {
-      throw new Error('Transcription failed');
+      throw new Error(await response.text());
     }
 
     const data = await response.json();
     return data.text;
   };
 
-  const getAIResponse = async (history: Array<{ role: string; content: string }>): Promise<string> => {
+  const getAIResponse = async (
+    history: Array<{ role: string; content: string }>
+  ): Promise<string> => {
+    const formData = new FormData();
+    formData.append('key', apiKey);
+    // formData.append('messages', JSON.stringify(history));
+    console.log(formData);
+
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          // 'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages: history }),
+        // body: JSON.stringify({ messages: history, key: apiKey }),
+        body: formData,
       }
     );
 
@@ -161,10 +190,10 @@ export default function VoiceAgent({ onOpenSettings }: VoiceAgentProps) {
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, key: apiKey }),
         }
       );
 
@@ -199,7 +228,9 @@ export default function VoiceAgent({ onOpenSettings }: VoiceAgentProps) {
         <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-700 p-8">
           <div className="flex items-center justify-between mb-8">
             <div className="text-center flex-1">
-              <h1 className="text-4xl font-bold text-white mb-2">Voice AI Agent</h1>
+              <h1 className="text-4xl font-bold text-white mb-2">
+                Voice AI Agent
+              </h1>
               <p className="text-slate-400">Powered by Whisper & GPT</p>
             </div>
             <button
@@ -219,7 +250,9 @@ export default function VoiceAgent({ onOpenSettings }: VoiceAgentProps) {
                 isRecording
                   ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/50 scale-110'
                   : 'bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/50'
-              } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''} flex items-center justify-center`}
+              } ${
+                isProcessing ? 'opacity-50 cursor-not-allowed' : ''
+              } flex items-center justify-center`}
             >
               {isProcessing ? (
                 <Loader2 className="w-10 h-10 text-white animate-spin" />
@@ -261,9 +294,11 @@ export default function VoiceAgent({ onOpenSettings }: VoiceAgentProps) {
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    msg.role === 'user' ? 'bg-blue-500' : 'bg-slate-600'
-                  }`}>
+                  <div
+                    className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                      msg.role === 'user' ? 'bg-blue-500' : 'bg-slate-600'
+                    }`}
+                  >
                     {msg.role === 'user' ? (
                       <Mic className="w-4 h-4 text-white" />
                     ) : (
